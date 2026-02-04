@@ -1,11 +1,13 @@
-name: Deploy on merge
+name: Deploy on merge or push
 on:
   pull_request:
     types: [closed]
+  push:
+    branches: [ main ]
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
+    if: github.event.pull_request == null || github.event.pull_request.merged == true
+    runs-on: [self-hosted, vps-deploy]
     steps:
       - uses: actions/checkout@v4
       - name: Setup SSH

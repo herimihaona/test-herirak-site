@@ -1,17 +1,36 @@
-name: Create PR on branch push
+name: Create PR on branch push (python)
 on:
   push:
     branches: ['feature/**']
 jobs:
   create-pr:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, vps-deploy]
     steps:
       - uses: actions/checkout@v4
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          body: |
-            Auto-generated PR for changes in branch
-          title: 'Auto PR: ${{ github.ref_name }} → main'
+      - name: Create PR via Python
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 - <<PY
+import os,sys,requests
+repo=os.environ['REPO']
+branch=os.environ['BRANCH']
+token=os.environ['GITHUB_TOKEN']
+api=f'https://api.github.com/repos/{repo}'
+headers={'Authorization':f'token {token}','Accept':'application/vnd.github+json'}
+# check existing PRs
+r=requests.get(f'{api}/pulls?head={repo.split("/")[0]}:{branch}&state=open',headers=headers)
+if r.status_code!=200:
+    print('failed list prs',r.status_code,r.text); sys.exit(0)
+prs=r.json()
+if len(prs)>0:
+    print('PR exists')
+    sys.exit(0)
+# create PR
+data={'title':f'Auto PR: {branch} -> main','head':branch,'base':'main','body':f'Auto-generated PR from {branch}'}
+r2=requests.post(f'{api}/pulls',json=data,headers=headers)
+print('create status',r2.status_code)
+print(r2.text)
+PY
