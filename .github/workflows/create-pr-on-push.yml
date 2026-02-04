@@ -1,0 +1,17 @@
+name: Create PR on branch push
+on:
+  push:
+    branches: ['feature/**']
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          body: |
+            Auto-generated PR for changes in branch
+          title: 'Auto PR: ${{ github.ref_name }} → main'
