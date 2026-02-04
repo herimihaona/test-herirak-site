@@ -12,8 +12,14 @@ jobs:
         uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
-      - name: Sync files
+      - name: Sync files (verbose)
         run: |
-          rsync -avz --delete --exclude '.git' --rsync-path="sudo rsync" ./ ubuntu@213.32.19.189:/var/www/test.herirak.ovh/
-      - name: Reload nginx
-        run: ssh -o StrictHostKeyChecking=no ubuntu@213.32.19.189 'sudo systemctl reload nginx'
+          set -x
+          mkdir -p deploy-logs
+          rsync -avz --delete --exclude '.git' --rsync-path="sudo rsync" ./ ubuntu@213.32.19.189:/var/www/test.herirak.ovh/ 2>&1 | tee deploy-logs/rsync.log
+          ssh -o StrictHostKeyChecking=no -v ubuntu@213.32.19.189 'sudo systemctl reload nginx' 2>&1 | tee deploy-logs/reload.log
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-logs
+          path: deploy-logs
