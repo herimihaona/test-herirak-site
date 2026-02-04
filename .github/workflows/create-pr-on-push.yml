@@ -1,4 +1,4 @@
-name: Create PR on branch push (scripted)
+name: Create PR on branch push (python)
 on:
   push:
     branches: ['feature/**']
@@ -6,26 +6,31 @@ jobs:
   create-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out
-        uses: actions/checkout@v4
-      - name: Create PR if missing
+      - uses: actions/checkout@v4
+      - name: Create PR via Python
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
         run: |
-          echo "Checking PR for branch $BRANCH"
-          api="https://api.github.com/repos/$REPO"
-          # check existing PRs
-          prs=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api/pulls?head=${{ github.repository_owner }}:$BRANCH&state=open")
-          count=$(echo "$prs" | jq 'length')
-          echo "existing PRs: $count"
-          if [ "$count" -eq 0 ]; then
-            body="Auto-generated PR from branch $BRANCH"
-            title="Auto PR: $BRANCH -> main"
-            data=$(jq -n --arg t "$title" --arg b "$body" --arg base "main" --arg head "$BRANCH" '{title:$t, body:$b, base:$base, head:$head}')
-            echo "Creating PR"
-            curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$data" "$api/pulls" | jq '.'
-          else
-            echo "PR already exists"
-          fi
+          python3 - <<PY
+import os,sys,requests
+repo=os.environ['REPO']
+branch=os.environ['BRANCH']
+token=os.environ['GITHUB_TOKEN']
+api=f'https://api.github.com/repos/{repo}'
+headers={'Authorization':f'token {token}','Accept':'application/vnd.github+json'}
+# check existing PRs
+r=requests.get(f'{api}/pulls?head={repo.split("/")[0]}:{branch}&state=open',headers=headers)
+if r.status_code!=200:
+    print('failed list prs',r.status_code,r.text); sys.exit(0)
+prs=r.json()
+if len(prs)>0:
+    print('PR exists')
+    sys.exit(0)
+# create PR
+data={'title':f'Auto PR: {branch} -> main','head':branch,'base':'main','body':f'Auto-generated PR from {branch}'}
+r2=requests.post(f'{api}/pulls',json=data,headers=headers)
+print('create status',r2.status_code)
+print(r2.text)
+PY
