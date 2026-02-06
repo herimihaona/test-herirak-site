@@ -1,8 +1,53 @@
 <!doctype html>
 <html lang="fr">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Accueil</title></head>
-<body><h1>Site en construction</h1><p>Ce site est actuellement en construction. Revenez bientôt.</p></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EDS Jour — Résumé quotidien</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:700px;margin:3rem auto;color:#111;padding:1rem}
+    header{display:flex;align-items:center;gap:1rem}
+    h1{font-size:1.4rem;margin:0}
+    p.lead{color:#444}
+    audio{width:100%;margin-top:1rem}
+    .meta{color:#666;font-size:0.9rem;margin-top:0.5rem}
+    .download{display:inline-block;margin-top:0.8rem;padding:0.5rem 0.8rem;border-radius:6px;background:#0b5fff;color:#fff;text-decoration:none}
+    footer{color:#888;font-size:0.8rem;margin-top:2rem}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>EDS Jour — Résumé quotidien</h1>
+      <p class="lead">Un court résumé audio chaque jour, lu et publié automatiquement.</p>
+      <div class="meta">Dernière mise à jour : 2026-02-06 13:01:46 CET</div>
+    </div>
+  </header>
+
+  <main>
+    <audio controls preload="none" id="player">
+      <source src="/media/voice-ia-tests.mp3" type="audio/mpeg">
+      Votre navigateur ne supporte pas la balise audio.
+    </audio>
+
+    <div>
+      <a class="download" href="/media/voice-ia-tests.mp3" download>Télécharger l'épisode</a>
+    </div>
+
+    <section id="notes">
+      <p class="meta">Généré automatiquement. Pour tout problème contactez l'administrateur.</p>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2026 — herirak.ovh
+  </footer>
+
+  <script>
+    // show a small toast when audio finishes
+    document.getElementById('player').addEventListener('ended', ()=>{
+      console.log('Episode terminé');
+    });
+  </script>
+</body>
 </html>
-/* test */
-// test auto pr Wed Feb  4 08:46:28 UTC 2026
-// test auto pr2 Wed Feb  4 08:47:46 UTC 2026
